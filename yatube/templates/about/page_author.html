@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Об авторе{% endblock %}
+{% block content %}
+{% load static%}
+  <h1>Об авторе</h1>
+  <h3>Контакты:</h3>
+  <p>Мой
+    <a href= "https://github.com/LGaben">GIT</a>
+  </p>
+  <h3>Благодарность:</h3> 
+  <p> Спасибо всем кто помогал.</p>
+  <p>Особая благодарность ревьюверу.
+    Который проверяет мой проект
+    и дает ценные советы.</p>
+  <img src="{% static 'img/table.jpg' %}"
+{% endblock %}
