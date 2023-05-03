@@ -1,14 +1,14 @@
+from http import HTTPStatus
+
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django import forms
 
-from http import HTTPStatus
-
 User = get_user_model()
 
 
-class PostModelTest(TestCase):
+class UserModelTest(TestCase):
 
     def setUp(self):
         self.guest_client = Client()
@@ -95,8 +95,8 @@ class PostModelTest(TestCase):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
-    def test_post_create_context(self):
-        """Проверка контекста post_edit"""
+    def test_users_signup_context(self):
+        """Проверка контекста users:signup"""
         response = self.authorized_client.get(reverse(
             'users:signup'
         ))

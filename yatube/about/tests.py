@@ -1,13 +1,13 @@
+from http import HTTPStatus
+
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from http import HTTPStatus
-
 User = get_user_model()
 
 
-class PostModelTest(TestCase):
+class AboutUrlTest(TestCase):
     def setUp(self):
         self.guest_client = Client()
 

@@ -1,11 +1,15 @@
+import shutil
+import tempfile
+
 from http import HTTPStatus
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django import forms
 from django.conf import settings
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..models import Group, Post, Follow
 
@@ -13,7 +17,10 @@ User = get_user_model()
 
 PAGI_ON_NEXT_PAGE = 1
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -29,11 +36,30 @@ class PostViewsTest(TestCase):
             slug='test-slug2',
             description='Тестовое описание2',
         )
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост',
-            group=cls.group
+            group=cls.group,
+            image=uploaded
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         cache.clear()
@@ -57,7 +83,8 @@ class PostViewsTest(TestCase):
             reverse('posts:post_create'): 'posts/post_create.html',
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}): (
                 'posts/post_create.html'
-            )
+            ),
+            reverse('posts:follow_index'): 'posts/follow.html'
         }
         for reverse_name, template in templates_page_names.items():
             with self.subTest(template=template):
@@ -148,11 +175,13 @@ class PostViewsTest(TestCase):
 
     def test_cache_index(self):
         response = self.authorized_client.get(reverse('posts:index'))
+        response_content = response.content
         self.post1 = Post.objects.create(
             text='test_new_post',
             author=self.user,
         )
-        self.assertNotIn(self.post1, response.context['page_obj'])
+        response = self.authorized_client.get(reverse('posts:index'))
+        self.assertEqual(response.content, response_content)
         cache.clear()
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertIn(self.post1, response.context['page_obj'])
@@ -227,9 +256,9 @@ class FollowTest(TestCase):
         self.authorized_client1 = Client()
         self.authorized_client1.force_login(self.user1)
 
-    def test_follow_unfollow(self):
-        """Подписываемся, отписываемся."""
-        count_follow = Follow.objects.all().count()
+    def test_follow(self):
+        """Подписываемся"""
+        count_follow = Follow.objects.filter(user=self.user).count()
         data_follow = {
             'user': self.user,
             'author': self.author
@@ -240,16 +269,29 @@ class FollowTest(TestCase):
             data=data_follow,
             follow=True
         )
-        new_count_follow = Follow.objects.all().count()
+        new_count_follow = Follow.objects.filter(user=self.user).count()
         self.assertEqual(count_follow + 1, new_count_follow)
+        self.assertEqual(
+            response.status_code,
+            HTTPStatus.OK
+        )
+
+    def test_unfollow(self):
+        """Отписываемся"""
+        Follow.objects.create(user=self.user, author=self.author)
+        count_follow = Follow.objects.filter(user=self.user).count()
+        data_follow = {
+            'user': self.user,
+            'author': self.author
+        }
         response = self.authorized_client.post(
             reverse('posts:profile_unfollow', kwargs={
                 'username': self.author.username}),
             data=data_follow,
             follow=True
         )
-        new_count_follow = Follow.objects.all().count()
-        self.assertEqual(count_follow, new_count_follow)
+        new_count_follow = Follow.objects.filter(user=self.user).count()
+        self.assertEqual(count_follow, new_count_follow + 1)
         self.assertEqual(
             response.status_code,
             HTTPStatus.OK

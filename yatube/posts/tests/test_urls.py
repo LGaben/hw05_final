@@ -31,6 +31,9 @@ class PostUrlsTest(TestCase):
         cls.POST_CREATE = '/create/'
         cls.POST_EDIT = f'/posts/{cls.post.id}/edit/'
         cls.COMMENT_ADD = f'/posts/{cls.post.id}/comment/'
+        cls.FOLLOW_INDEX = '/follow/'
+        cls.PROFILE_FOLLOW = f'/profile/{cls.user.username}/follow/'
+        cls.PROFILE_UNFOLLOW = f'/profile/{cls.user.username}/unfollow/'
 
     def setUp(self):
         cache.clear()
@@ -59,7 +62,16 @@ class PostUrlsTest(TestCase):
             (self.authorized_client.get('/asd/'), HTTPStatus.NOT_FOUND),
             (self.authorized_client.get('/asd/'), HTTPStatus.NOT_FOUND),
             (self.guest_client.get(self.COMMENT_ADD), HTTPStatus.FOUND),
-            (self.authorized_client.get(self.COMMENT_ADD), HTTPStatus.FOUND)
+            (self.authorized_client.get(self.COMMENT_ADD), HTTPStatus.FOUND),
+            (self.authorized_client.get(self.FOLLOW_INDEX), HTTPStatus.OK),
+            (
+                self.authorized_client.get(self.PROFILE_FOLLOW),
+                HTTPStatus.FOUND
+            ),
+            (
+                self.authorized_client.get(self.PROFILE_UNFOLLOW),
+                HTTPStatus.FOUND
+            )
         ]
         for response, status in responses_statuses:
             with self.subTest(responses_statuses=responses_statuses):

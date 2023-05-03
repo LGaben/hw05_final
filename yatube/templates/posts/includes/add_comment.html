@@ -15,16 +15,17 @@
   </div>
 {% endif %}
 
-{% for comment in comments %}
-  <div class="media mb-4">
+{% for comment in post.comments.all %}
+  <div class="media mb-4 card">
     <div class="media-body">
-      <h5 class="mt-0">
+      <h5 class="mt-0 card-header ">
         <a href="{% url 'posts:profile' comment.author.username %}">
           {{ comment.author.username }}
-        </a>
+        </a> 
+        <p class="semi">{{ comment.created|date:"d E Y"  }}</p>
       </h5>
-      <p>
-        {{ comment.text }}
+      <p class="card-body">
+        {{ comment.text|linebreaksbr }}
       </p>
     </div>
   </div>

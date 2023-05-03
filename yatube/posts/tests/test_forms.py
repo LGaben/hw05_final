@@ -76,11 +76,7 @@ class PostFormTest(TestCase):
             'posts:profile',
             args={self.user.username}
         ))
-        self.assertTrue(
-            Post.objects.filter(
-                image='posts/small.gif'
-            ).exists()
-        )
+        self.assertEqual(new_post.image, 'posts/small.gif')
         self.assertEqual(Post.objects.count(), posts_count + 1)
 
     def test_create_post_edite(self):

@@ -3,7 +3,7 @@ from http import HTTPStatus
 from django.test import TestCase
 
 
-class ViewTestClass(TestCase):
+class CoreViewTest(TestCase):
     def test_error_page(self):
         response = self.client.get('/nonexist-page/')
         # Проверьте, что статус ответа сервера - 404
