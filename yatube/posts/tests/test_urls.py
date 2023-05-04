@@ -25,7 +25,7 @@ class PostUrlsTest(TestCase):
             text='Тестовый пост1234',
         )
         cls.INDEX = '/'
-        cls.GROUP = '/group/test-slug/'
+        cls.GROUP = f'/group/{cls.post.slug}/'
         cls.PROFILE = '/profile/auth/'
         cls.POST_DETAIL = f'/posts/{cls.post.id}/'
         cls.POST_CREATE = '/create/'

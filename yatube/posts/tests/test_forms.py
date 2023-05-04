@@ -76,7 +76,7 @@ class PostFormTest(TestCase):
             'posts:profile',
             args={self.user.username}
         ))
-        self.assertEqual(new_post.image, 'posts/small.gif')
+        self.assertEqual(new_post.image, f'posts/{uploaded}')
         self.assertEqual(Post.objects.count(), posts_count + 1)
 
     def test_create_post_edite(self):

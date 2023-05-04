@@ -1,6 +1,5 @@
 import shutil
 import tempfile
-
 from http import HTTPStatus
 
 from django.test import TestCase, Client, override_settings
@@ -258,43 +257,35 @@ class FollowTest(TestCase):
 
     def test_follow(self):
         """Подписываемся"""
-        count_follow = Follow.objects.filter(user=self.user).count()
-        data_follow = {
-            'user': self.user,
-            'author': self.author
-        }
-        response = self.authorized_client.post(
+        response = self.authorized_client.get(
             reverse('posts:profile_follow', kwargs={
                 'username': self.author.username}),
-            data=data_follow,
-            follow=True
         )
-        new_count_follow = Follow.objects.filter(user=self.user).count()
-        self.assertEqual(count_follow + 1, new_count_follow)
+        following = Follow.objects.filter(
+            user=self.user,
+            author=self.author
+        ).exists()
+        self.assertTrue(following)
         self.assertEqual(
             response.status_code,
-            HTTPStatus.OK
+            HTTPStatus.FOUND
         )
 
     def test_unfollow(self):
         """Отписываемся"""
         Follow.objects.create(user=self.user, author=self.author)
-        count_follow = Follow.objects.filter(user=self.user).count()
-        data_follow = {
-            'user': self.user,
-            'author': self.author
-        }
-        response = self.authorized_client.post(
+        response = self.authorized_client.get(
             reverse('posts:profile_unfollow', kwargs={
                 'username': self.author.username}),
-            data=data_follow,
-            follow=True
         )
-        new_count_follow = Follow.objects.filter(user=self.user).count()
-        self.assertEqual(count_follow, new_count_follow + 1)
+        following = Follow.objects.filter(
+            user=self.user,
+            author=self.author
+        ).exists()
+        self.assertFalse(following)
         self.assertEqual(
             response.status_code,
-            HTTPStatus.OK
+            HTTPStatus.FOUND
         )
 
     def test_new_post_follow(self):

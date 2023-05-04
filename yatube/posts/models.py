@@ -98,17 +98,16 @@ class Follow(models.Model):
     )
 
     def __str__(self):
-        # выводим текст поста
         return self.user.username
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
-                name="unique_user",
+                name='unique_follower',
             ),
             models.CheckConstraint(
-                check=models.Q(author__exclude=User),
-                name="not_self",
+                check=models.Q(user=models.F('author')),
+                name='not_self',
             )
         ]
